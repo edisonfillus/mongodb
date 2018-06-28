@@ -87,7 +87,7 @@ db.zips.aggregate([
 
 
 
-// List of product categories by Manufacturer
+// List of product categories by Manufactures, only distinct (Use $push to add all)
 db.products.aggregate([
     {
         $group:
@@ -110,6 +110,21 @@ db.zips.aggregate([
             }
     }
 ]);
+
+
+// List of product categories by Manufacturer, including duplicates (Use $addToSet to distinct)
+db.products.aggregate([
+    {
+        $group:
+            {
+                _id: {
+                    "manufacturer": "$manufacturer"
+                },
+                categories: {$push: "$category"}
+            }
+    }
+]);
+
 
 // Group students by score average
 db.grades.aggregate(
