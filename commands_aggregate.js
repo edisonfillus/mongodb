@@ -228,3 +228,57 @@ db.zips.aggregate([
         }
     }
 ]);
+
+// Sort, Skip and Limit
+db.zips.aggregate([
+    {
+        $match: {
+            state: 'NY'
+        }
+    },
+    {
+        $group: {
+            _id: "$city",
+            population: {$sum:"$pop"}
+        }
+    },
+    {
+        $project: {
+            _id: 0,
+            city: "$_id",
+            population: 1
+        }
+    },
+    {
+        $sort: {
+            population: -1,  // Descending
+            city: 1 // Ascending
+        }
+    },
+    {$skip: 10},
+    {$limit: 5}
+]);
+
+
+// First and Last
+db.zips.aggregate([
+    {
+        $group: {
+            _id: {state: "$state", city: "$city"},
+            population: {$sum:"$pop"}
+        }
+    },
+    {
+        $sort: {
+            "_id.state": 1,
+            population: -1
+        }
+    },
+    {
+        $group: {
+            _id: "$_id.state",
+            city: {$first:"$_id.city"}, // Get only the first in the group
+            population: {$first:"population"} // Get only the first in the group
+        }
+    }
+]);
