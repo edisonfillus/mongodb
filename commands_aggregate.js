@@ -239,7 +239,7 @@ db.zips.aggregate([
     {
         $group: {
             _id: "$city",
-            population: {$sum:"$pop"}
+            population: {$sum: "$pop"}
         }
     },
     {
@@ -265,7 +265,7 @@ db.zips.aggregate([
     {
         $group: {
             _id: {state: "$state", city: "$city"},
-            population: {$sum:"$pop"}
+            population: {$sum: "$pop"}
         }
     },
     {
@@ -277,8 +277,105 @@ db.zips.aggregate([
     {
         $group: {
             _id: "$_id.state",
-            city: {$first:"$_id.city"}, // Get only the first in the group
-            population: {$first:"population"} // Get only the first in the group
+            city: {$first: "$_id.city"}, // Get only the first in the group
+            population: {$first: "population"} // Get only the first in the group
         }
     }
 ]);
+
+
+/**
+ { "_id" : "Will", "likes" : [ "physics", "MongoDB", "indexes" ] }
+ { "_id" : "Dwight", "likes" : [ "starting companies", "restaurants", "MongoDB" ] }
+ */
+db.items.aggregate([
+    {
+        $unwind: "$likes" // Will unjoin the array
+    }
+]);
+
+db.posts.aggregate([
+
+    /* unwind by tags */
+    {"$unwind": "$tags"},
+
+    /* now group by tags, counting each tag */
+    {
+        "$group":
+            {
+                "_id": "$tags",
+                "count": {$sum: 1}
+            }
+    },
+
+    /* sort by popularity */
+    {"$sort": {"count": -1}},
+
+    /* show me the top 10 */
+    {"$limit": 10},
+
+    /* change the name of _id to be tag */
+    {
+        "$project":
+            {
+                _id: 0,
+                'tag': '$_id',
+                'count': 1
+            }
+    }
+]);
+
+
+/*
+    {
+        'name':"Chino Pants",
+        'sizes':["32x32", "31x30", "36x32"],
+        'colors':['navy', 'white', 'orange', 'violet']
+    }
+    Double Unwind
+ */
+db.inventory.aggregate([
+    {$unwind: "$sizes"},
+    {$unwind: "$colors"},
+    {$group:
+            {
+                '_id': {'size':'$sizes', 'color':'$colors'},
+                'count' : {'$sum':1}
+            }
+    }
+]);
+
+// Reversing Double Unwind: Arrays with unique values
+db.inventory.aggregate([
+    {$unwind: "$sizes"},
+    {$unwind: "$colors"},
+    {$group:
+            {
+                '_id': "$name",
+                'sizes': {$addToSet: "$sizes"},
+                'colors': {$addToSet: "$colors"},
+            }
+    }
+]);
+
+// Reversing Double Unwind: Arrays with duplicated values
+db.inventory.aggregate([
+    {$unwind: "$sizes"},
+    {$unwind: "$colors"},
+    {$group:
+            {
+                '_id': {name: "$name", size: "$sizes"},
+                'colors': {$push: "$colors"},
+            }
+    },
+    {$group:
+            {
+                '_id': {name: "$name", colors: "$colors"},
+                'sizes': {$push: "$sizes"},
+            }
+    }
+]);
+
+
+
+
