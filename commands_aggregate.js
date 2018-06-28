@@ -337,10 +337,11 @@ db.posts.aggregate([
 db.inventory.aggregate([
     {$unwind: "$sizes"},
     {$unwind: "$colors"},
-    {$group:
+    {
+        $group:
             {
-                '_id': {'size':'$sizes', 'color':'$colors'},
-                'count' : {'$sum':1}
+                '_id': {'size': '$sizes', 'color': '$colors'},
+                'count': {'$sum': 1}
             }
     }
 ]);
@@ -349,7 +350,8 @@ db.inventory.aggregate([
 db.inventory.aggregate([
     {$unwind: "$sizes"},
     {$unwind: "$colors"},
-    {$group:
+    {
+        $group:
             {
                 '_id': "$name",
                 'sizes': {$addToSet: "$sizes"},
@@ -362,13 +364,15 @@ db.inventory.aggregate([
 db.inventory.aggregate([
     {$unwind: "$sizes"},
     {$unwind: "$colors"},
-    {$group:
+    {
+        $group:
             {
                 '_id': {name: "$name", size: "$sizes"},
                 'colors': {$push: "$colors"},
             }
     },
-    {$group:
+    {
+        $group:
             {
                 '_id': {name: "$name", colors: "$colors"},
                 'sizes': {$push: "$sizes"},
