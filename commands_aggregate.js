@@ -86,7 +86,6 @@ db.zips.aggregate([
 ]);
 
 
-
 // List of product categories by Manufactures, only distinct (Use $push to add all)
 db.products.aggregate([
     {
@@ -126,20 +125,106 @@ db.products.aggregate([
 ]);
 
 
-// Group students by score average
-db.grades.aggregate(
+// List of Max Prices by Manufacturer
+db.products.aggregate([
+    {
+        $group:
+            {
+                _id: {
+                    "manufacturer": "$manufacturer"
+                },
+                categories: {$max: "$price"}
+            }
+    }
+]);
+
+// List of ZIP max population by State
+db.zips.aggregate([
+    {
+        $group:
+            {
+                _id: "$state",
+                "pop": {$max: "$pop"}
+            }
+    }
+]);
+
+
+// Double grouping: Average of Students Average by Class
+db.grades.aggregate([
     {
         $group: {
-            '_id': '$student_id',
+            '_id': {class_id: "$class_id", student_id: '$student_id'},
             'average': {$avg: '$score'}
         }
     },
     {
-        $sort: {
-            'average': -1
+        $group: {
+            '_id': {class_id: "$_id.class_id"},
+            'average': {$avg: '$average'}
+        }
+    }
+]);
+
+
+// Project: Reshaping output
+db.grades.aggregate([
+    {
+        $project: {
+            _id: 0, // No Id
+            maker: {$toLower: "$manufacturer"}, // String conversion
+            details: {
+                category: '$category',
+                price: {$multiply: ["$price", 10]} // Calculations
+            },
+            item: '$name' // Renaming
+        }
+    }
+]);
+
+// Project: Reshaping output
+db.zips.aggregate([
+    {
+        $project:
+            {
+                _id: 0, // No Id
+                city: {$toLower: "$city"},
+                pop: 1, // Keep as is
+                state: 1,
+                zip: "$_id"
+            }
+    }
+]);
+
+// Match: Filter documents in the pipeline
+db.grades.aggregate([
+    {
+        $match: {
+            state: 'CA'
         }
     },
     {
-        $limit: 1
+        $group: {
+            _id: "$city",
+            population: {$sum: "$pop"},
+            zip_codes: {$addToSet: "$_id"}
+        }
+    },
+    {
+        $project: {
+            _id: 0,
+            city: "$_id",
+            population: 1,
+            zip_codes: 1
+        }
     }
-);
+]);
+
+// Match: Filter documents in the pipeline
+db.zips.aggregate([
+    {
+        $match: {
+            pop: {$gt: 100000}
+        }
+    }
+]);
