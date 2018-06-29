@@ -381,5 +381,107 @@ db.inventory.aggregate([
 ]);
 
 
+db.posts.aggregate([
+    {
+        $unwind: "$comments"
+    },
+    {
+        $group:
+            {
+                '_id': "$comments.author",
+                'count': {$sum: 1}
+            }
+    },
+    {
+        $sort:
+            {
+                'count': 1
+            }
+    }
+
+]);
 
 
+db.zips.aggregate([
+    {
+        $group:
+            {
+                '_id': {city: "$city", state: "$state"},
+                'pop': {$sum: "$pop"}
+            }
+    },
+    {
+        $match:
+            {
+                $or: [
+                    {"_id.state": 'CA'},
+                    {"_id.state": 'NY'}
+                ],
+                pop: {$gt: 25000}
+            }
+    },
+    {
+        $group:
+            {
+                '_id': null,
+                'avg': {$avg: "$pop"}
+            }
+    }
+]);
+
+
+db.grades.aggregate([
+    {
+        $unwind: "$scores"
+    },
+    {
+        $match:
+            {
+                "scores.type": {$ne: "quiz"}
+            }
+    },
+    {
+        $group:
+            {
+                '_id': {student_id: "$student_id", class_id: "$class_id"},
+                'avg': {$avg: "$scores.score"}
+            }
+    },
+    {
+        $group:
+            {
+                '_id': {class_id: "$_id.class_id"},
+                'avg': {$avg: "$avg"}
+            }
+    },
+    {
+        $sort:
+            {
+                'avg': -1
+            }
+    }
+]);
+
+
+db.zips.aggregate([
+    {
+        $project:
+            {
+                first_char: {$substr: ["$city", 0, 1]},
+                pop: 1
+            }
+    },
+    {
+        $match:
+            {
+                first_char: {$in: ['B', 'D', 'O', 'G', 'N','M'] }
+            }
+    },
+    {
+        $group:
+            {
+                '_id': null,
+                'total': {$sum: "$pop"}
+            }
+    }
+]);
