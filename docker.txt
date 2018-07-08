@@ -1,0 +1,16 @@
+https://hub.docker.com/r/library/mongo/
+
+# Download Image
+docker pull mongo:3.6.5-jessie
+
+# Basic running
+docker run --name mongo -d mongo:3.6.5-jessie
+
+# Running with data and port mapping
+sudo docker run --name mongo -v /home/mongo/conf:/etc/mongo -v /home/mongo/data/db:/data/db -p 27017:27017 -d mongo:3.6.5-jessie
+
+# Running with auth on and config file
+sudo docker run --name mongo -v /home/mongo/conf:/etc/mongo -v /home/mongo/data/db:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=admin -p 27017:27017 -d mongo:3.6.5-jessie --config /etc/mongo/mongod.conf
+
+#DUMP
+docker exec mongo sh -c 'exec mongodump -d <database_name> --archive' > /some/path/on/your/host/all-collections.archive

@@ -1,0 +1,4 @@
+###### Import
+mongoimport -c students --jsonArray < students.json
+
+mongoimport --drop -d companies -c companies companies.json

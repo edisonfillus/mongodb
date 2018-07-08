@@ -1,0 +1,25 @@
+Level 0 - No log
+Level 1 - Only slow queries
+Level 2 - All queries
+
+
+# Ex: Log slow queries above 100ms
+mongod -- profile 1 --slowms 100
+
+# Get statistics of profiled queries
+db.system.profile.find()
+
+# Filter statistics by collection, sort by timestamp
+db.system.profile.find({nx:/school.students/}).sort({ts:1})
+
+# Filter statistics by time
+db.system.profile.find({millis:{$gt:100}}).sort({ts:1})
+
+# Get current profile level
+db.getProfilingLevel()
+
+# Get profile status
+db.getProfilingStatus()
+
+# Set profile to Level 1, logging queries above 500ms
+db.setProfilingLevel(1,500)
