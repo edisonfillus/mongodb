@@ -474,7 +474,7 @@ db.zips.aggregate([
     {
         $match:
             {
-                first_char: {$in: ['B', 'D', 'O', 'G', 'N','M'] }
+                first_char: {$in: ['B', 'D', 'O', 'G', 'N', 'M']}
             }
     },
     {
@@ -484,4 +484,81 @@ db.zips.aggregate([
                 'total': {$sum: "$pop"}
             }
     }
+]);
+
+db.companies.aggregate([
+    {
+        $match: {"relationships.person": {$ne: null}}
+    },
+    {
+        $project: {relationships: 1, _id: 0}
+    },
+    {
+        $unwind: "$relationships"
+    },
+    {
+        $group: {
+            _id: "$relationships.person",
+            count: {$sum: 1}
+        }
+    },
+    {$sort: {count: -1}}
+]);
+
+db.companies.aggregate([
+    {
+        $match: {"relationships.person": {$ne: null}}
+    },
+    {
+        $project: {
+            relationships: 1,
+            name: 1,
+            _id: 0
+        }
+    },
+    {
+        $unwind: "$relationships"
+    },
+    {
+        $group:
+            {
+                '_id': "$relationships.person",
+                'companies': {$addToSet: "$name"}
+            }
+    },
+    {
+        $project: {
+            '_id': "$_id",
+            companies: {$size: "$companies"}
+        }
+    },
+    {$sort: {companies: -1}}
+]);
+
+db.companies.aggregate([
+    {
+        $match: {
+            founded_year: 2004,
+            'funding_rounds.4': {$exists: true}  // Trick: >= 5
+        }
+    },
+    {
+        $project:
+            {
+                'name': 1,
+                'funding_rounds': 1,
+                '_id': 0
+            }
+    },
+    {
+        $unwind: "$funding_rounds"
+    },
+    {
+        $group:
+            {
+                '_id': "$name",
+                'avg': {$avg: "$funding_rounds.raised_amount"}
+            }
+    },
+    {$sort: {avg: 1}}
 ]);
