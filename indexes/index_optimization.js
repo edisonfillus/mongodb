@@ -39,4 +39,4 @@ db.students.createIndex(
 * equality field: field on which queries will perform an equality test
 * sort field: field on which queries will specify a sort
 * range field: field on which queries perform a range test
-/*
+*/
