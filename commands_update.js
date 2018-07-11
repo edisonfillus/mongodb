@@ -54,6 +54,16 @@ db.movies.updateMany(
         }
     });
 
+// Incrementing
+db.posts.updateOne(
+    {
+        "permalink": 'bjdgkubdbesvrgkvvelt'
+    },
+    {
+        $inc: {'comments.0.num_likes': 1}
+    });
+
+
 // UPDATE array of numbers
 db.students.update(
     {

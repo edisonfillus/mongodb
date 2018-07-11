@@ -562,3 +562,33 @@ db.companies.aggregate([
     },
     {$sort: {avg: 1}}
 ]);
+
+db.messages.aggregate([
+    {
+        $project: {
+            'from': '$headers.From',
+            'to': '$headers.To'
+        }
+    },
+    {
+        $unwind: "$to"
+    },
+    {
+        $group:
+            {
+                '_id': {_id: "$_id", from: "$from"},
+                'to': {$addToSet: "$to"}
+            }
+    },
+    {
+        $unwind: "$to"
+    },
+    {
+        $group:
+            {
+                '_id': {from: "$_id.from", to: '$to'},
+                'count': {$sum: 1}
+            }
+    },
+    {$sort: {count: -1}}
+]);
