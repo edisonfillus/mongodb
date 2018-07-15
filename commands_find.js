@@ -118,3 +118,27 @@ db.scores.find(
     {
         results: {$elemMatch: {$gte: 70, $lt: 80}} // Documents that an element has this conditions
     });
+
+
+// Find in array, returning just the first match array element
+db.cart.find(
+    {
+        userId: "558098a65133816958968d88",
+        "items._id": 2
+    },
+    {
+        "items.$": 1
+    });
+
+db.students.find(
+    {
+        grades: {
+            $elemMatch: {
+                mean: {$gt: 70},
+                grade: {$gt: 90}
+            }
+        }
+    },
+    {
+        "grades.$": 1
+    });
