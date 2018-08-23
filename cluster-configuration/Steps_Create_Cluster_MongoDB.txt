@@ -1,0 +1,242 @@
+1) Copy file mongodb-linux-x86_64-debian81-3.6.4.tgz to /opt
+sudo mv /tmp/mongodb-linux-x86_64-debian81-3.6.4.tgz /opt
+
+2) Decompress
+cd /opt && sudo tar -zxvf /opt/mongodb-linux-x86_64-debian81-3.6.4.tgz
+
+3) Create System User
+sudo adduser --system --no-create-home --disabled-password --disabled-login --group mongodb
+
+4) Include binaries in Path
+sudo tee /etc/profile.d/mongodb.sh << \EOF
+PATH=$PATH:/opt/mongodb-linux-x86_64-debian81-3.6.4/bin
+EOF
+
+5) Install Dependencies
+sudo apt-get install libcurl3 openssl
+
+6) Grant permissions
+sudo chown -R mongodb:mongodb /opt/mongodb-linux-x86_64-debian81-3.6.4
+sudo chmod ug+rwx /opt/mongodb-linux-x86_64-debian81-3.6.4
+sudo chmod ug+rx -R /opt/mongodb-linux-x86_64-debian81-3.6.4/bin
+sudo chmod ug-w -R /opt/mongodb-linux-x86_64-debian81-3.6.4/bin
+
+7) Create data, log and config dirs, grant permissions
+
+In Server 0: 
+sudo mkdir -p /data/config/rs0 /data/shard0/rs0 /data/shard1/rs0 /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+sudo chown -R mongodb:mongodb /data/config/rs0 /data/shard0/rs0 /data/shard1/rs0 /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+sudo chmod ug+rwx /data/config/rs0 /data/shard0/rs0 /data/shard1/rs0 /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+
+In Server 1: 
+sudo mkdir -p /data/config/rs1 /data/shard0/rs1 /data/shard1/rs1 /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+sudo chown -R mongodb:mongodb /data/config/rs1 /data/shard0/rs1 /data/shard1/rs1 /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+sudo chmod ug+rwx /data/config/rs1 /data/shard0/rs1 /data/shard1/rs1 /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+
+In Server 2: 
+sudo mkdir -p /data/config/rs2 /data/shard0/rs2 /data/shard1/rs2 /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+sudo chown -R mongodb:mongodb /data/config/rs2 /data/shard0/rs2 /data/shard1/rs2 /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+sudo chmod ug+rwx /data/config/rs2 /data/shard0/rs2 /data/shard1/rs2 /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+
+8) Set servers DNS in mongos.conf
+change last line. Keep port 27018.
+
+9) Copy mongod and mongos config files to /opt/mongodb-linux-x86_64-debian81-3.6.4/conf and grant permissions
+In Server 0: 
+sudo mv /tmp/mongod-config-rs0.conf /tmp/mongod-shard0-rs0.conf /tmp/mongod-shard1-rs0.conf /tmp/mongos.conf /opt/mongodb-linux-x86_64-debian81-3.6.4/conf
+sudo chown mongodb:mongodb /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/*.conf
+
+In Server 1: 
+sudo mv /tmp/mongod-config-rs1.conf /tmp/mongod-shard0-rs1.conf /tmp/mongod-shard1-rs1.conf /tmp/mongos.conf /opt/mongodb-linux-x86_64-debian81-3.6.4/conf
+sudo chown mongodb:mongodb /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/*.conf
+
+In Server 2: 
+sudo mv /tmp/mongod-config-rs2.conf /tmp/mongod-shard0-rs2.conf /tmp/mongod-shard1-rs2.conf /tmp/mongos.conf /opt/mongodb-linux-x86_64-debian81-3.6.4/conf
+sudo chown mongodb:mongodb /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/*.conf
+
+10) Copy init files to /etc/init.d and grant permissions
+In Server 0: 
+sudo mv /tmp/mongod-config-rs0 /tmp/mongod-shard0-rs0 /tmp/mongod-shard1-rs0 /tmp/mongos /etc/init.d
+sudo chown root:root /etc/init.d/mongo*
+sudo chmod a+rx /etc/init.d/mongo*
+
+In Server 1: 
+sudo mv /tmp/mongod-config-rs1 /tmp/mongod-shard0-rs1 /tmp/mongod-shard1-rs1 /tmp/mongos /etc/init.d
+sudo chown root:root /etc/init.d/mongo*
+sudo chmod a+rx /etc/init.d/mongo*
+
+In Server 2: 
+sudo mv /tmp/mongod-config-rs2 /tmp/mongod-shard0-rs2 /tmp/mongod-shard1-rs2 /tmp/mongos /etc/init.d
+sudo chown root:root /etc/init.d/mongo*
+sudo chmod a+rx /etc/init.d/mongo*
+
+11) Activate init scripts
+In Server 0: 
+sudo update-rc.d mongod-config-rs0 defaults
+sudo update-rc.d mongod-shard0-rs0 defaults
+sudo update-rc.d mongod-shard1-rs0 defaults
+sudo update-rc.d mongos defaults
+
+In Server 1: 
+sudo update-rc.d mongod-config-rs1 defaults
+sudo update-rc.d mongod-shard0-rs1 defaults
+sudo update-rc.d mongod-shard1-rs1 defaults
+sudo update-rc.d mongos defaults
+
+In Server 2: 
+sudo update-rc.d mongod-config-rs2 defaults
+sudo update-rc.d mongod-shard0-rs2 defaults
+sudo update-rc.d mongod-shard1-rs2 defaults
+sudo update-rc.d mongos defaults
+
+
+12) Start instances
+In Server 0: 
+sudo service mongod-config-rs0 start
+sudo service mongod-shard0-rs0 start
+sudo service mongod-shard1-rs0 start
+
+In Server 1: 
+sudo service mongod-config-rs1 start
+sudo service mongod-shard0-rs1 start
+sudo service mongod-shard1-rs1 start
+
+In Server 2: 
+sudo service mongod-config-rs2 start
+sudo service mongod-shard0-rs2 start
+sudo service mongod-shard1-rs2 start
+
+13) Create admin user
+In Server 0, 1 and 2:
+mongo --port 27018
+use admin
+db.createUser(
+  {
+    user: "admin",
+    pwd: "admin",
+    roles: [ "userAdminAnyDatabase",
+             "readWriteAnyDatabase",
+             "dbAdminAnyDatabase",
+             "clusterAdmin" ]
+  }
+)
+quit()
+
+mongo --port 27019
+use admin
+db.createUser(
+  {
+    user: "admin",
+    pwd: "admin",
+    roles: [ "userAdminAnyDatabase",
+             "readWriteAnyDatabase",
+             "dbAdminAnyDatabase",
+             "clusterAdmin" ]
+  }
+)
+quit()
+
+mongo --port 27020
+use admin
+db.createUser(
+  {
+    user: "admin",
+    pwd: "admin",
+    roles: [ "userAdminAnyDatabase",
+             "readWriteAnyDatabase",
+             "dbAdminAnyDatabase",
+             "clusterAdmin" ]
+  }
+)
+quit()
+
+
+14) Create keyfile for internal authentication and grant permissions
+openssl rand -base64 756 > /tmp/keyfile
+# Copy keyfile to /tmp in Servers 1 and 2. Execute the following in all servers
+sudo mv /tmp/keyfile /opt/mongodb-linux-x86_64-debian81-3.6.4
+sudo chown mongodb:mongodb /opt/mongodb-linux-x86_64-debian81-3.6.4/keyfile
+sudo chmod 600 /opt/mongodb-linux-x86_64-debian81-3.6.4/keyfile
+
+
+15) Change config files to enable security and set replication and sharding roles
+In Server 0:
+sudo cat /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-config-rs0.conf | sed 's/#//'  | sudo tee /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-config-rs0.conf
+sudo cat /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard0-rs0.conf | sed 's/#//'  | sudo tee /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard0-rs0.conf
+sudo cat /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard1-rs0.conf | sed 's/#//'  | sudo tee /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard1-rs0.conf
+
+In Server 1:
+sudo cat /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-config-rs1.conf | sed 's/#//'  | sudo tee /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-config-rs1.conf
+sudo cat /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard0-rs1.conf | sed 's/#//'  | sudo tee /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard0-rs1.conf
+sudo cat /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard1-rs1.conf | sed 's/#//'  | sudo tee /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard1-rs1.conf
+
+In Server 2:
+sudo cat /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-config-rs2.conf | sed 's/#//'  | sudo tee /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-config-rs2.conf
+sudo cat /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard0-rs2.conf | sed 's/#//'  | sudo tee /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard0-rs2.conf
+sudo cat /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard1-rs2.conf | sed 's/#//'  | sudo tee /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongod-shard1-rs2.conf
+
+
+16) Restart instances
+In Server 0: 
+sudo service mongod-config-rs0 restart
+sudo service mongod-shard0-rs0 restart
+sudo service mongod-shard1-rs0 restart
+
+In Server 1: 
+sudo service mongod-config-rs1 restart
+sudo service mongod-shard0-rs1 restart
+sudo service mongod-shard1-rs1 restart
+
+In Server 2: 
+sudo service mongod-config-rs2 restart
+sudo service mongod-shard0-rs2 restart
+sudo service mongod-shard1-rs2 restart
+
+
+17) Set config instances mapping. _id:0 is primary (Server 0), 1 (Server 1) e 2 (Server 2) secondaries. Substitute hosts.  
+In Server 0:
+mongo --port 27018 -u admin --authenticationDatabase admin -p
+config = { _id: "config", members:[
+          { _id : 0, host : "dnsserver0:27018", priority : 3 },
+          { _id : 1, host : "dnsserver1:27018", priority : 2 },
+          { _id : 2, host : "dnsserver2:27018", priority : 1 }]};
+rs.initiate(config)
+quit()
+
+
+
+18) Set shard0 instances mapping. _id:0 is primary (Server 0), 1 (Server 1) e 2 (Server 2) secondaries. Substitute hosts.  
+In Server 0:
+mongo --port 27019 -u admin --authenticationDatabase admin -p
+shard0 = { _id: "shard0", members:[
+          { _id : 0, host : "dnsserver1:27019", priority : 3 },
+          { _id : 1, host : "dnsserver2:27019", priority : 2 },
+          { _id : 2, host : "dnsserver1:27019", priority : 1 }]};
+rs.initiate(shard0)
+quit()
+
+
+19) Set shard1 instances mapping. _id:0 is primary (Server 0), 1 (Server 1) e 2 (Server 2) secondaries. Substitute hosts.  
+In Server 0:
+mongo --port 27020 -u admin --authenticationDatabase admin -p
+shard1 = { _id: "shard1", members:[
+          { _id : 0, host : "dnsserver2:27020", priority : 3 },
+          { _id : 1, host : "dnsserver0:27020", priority : 2 },
+          { _id : 2, host : "dnsserver1:27020", priority : 1 }]};
+rs.initiate(shard1)
+quit()
+
+20) Start mongos
+In Servers 0, 1 and 2: 
+sudo service mongos start
+
+21) Connect to Server 0 and define sharding map. Substitute hosts.
+mongo --port 27017 -u admin --authenticationDatabase admin -p
+use admin
+db.runCommand( { addshard : "shard0/dnsserver1:27019" } );
+db.runCommand( { addshard : "shard1/dnsserver2:27020" } );
+quit()
+
+
+
+

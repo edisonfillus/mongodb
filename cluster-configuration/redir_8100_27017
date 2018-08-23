@@ -1,0 +1,2 @@
+#!/bin/bash
+redir --laddr=10.116.93.86 --lport=8100 --caddr=10.116.93.86  --cport=27017&

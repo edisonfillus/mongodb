@@ -1,0 +1,61 @@
+1) Copy file mongodb-linux-x86_64-debian81-3.6.4.tgz to /opt
+sudo mv /tmp/mongodb-linux-x86_64-debian81-3.6.4.tgz /opt
+
+2) Decompress
+cd /opt && sudo tar -zxvf /opt/mongodb-linux-x86_64-debian81-3.6.4.tgz
+
+3) Create System User
+sudo adduser --system --no-create-home --disabled-password --disabled-login --group mongodb
+
+4) Include binaries in Path
+sudo tee /etc/profile.d/mongodb.sh << \EOF
+PATH=$PATH:/opt/mongodb-linux-x86_64-debian81-3.6.4/bin
+EOF
+
+5) Install Dependencies
+sudo apt-get install libcurl3 openssl
+
+6) Grant permissions
+sudo chown -R mongodb:mongodb /opt/mongodb-linux-x86_64-debian81-3.6.4
+sudo chmod ug+rwx /opt/mongodb-linux-x86_64-debian81-3.6.4
+sudo chmod ug+rx -R /opt/mongodb-linux-x86_64-debian81-3.6.4/bin
+sudo chmod ug-w -R /opt/mongodb-linux-x86_64-debian81-3.6.4/bin
+
+7)  Create log and config dirs, grant permissions
+sudo mkdir -p /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+sudo chown -R mongodb:mongodb /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+sudo chmod ug+rwx /opt/mongodb-linux-x86_64-debian81-3.6.4/conf /var/log/mongodb
+
+8) Set servers DNS in mongos.conf
+change last line. Keep port 27018.
+
+9) Copy mongos config file to /opt/mongodb-linux-x86_64-debian81-3.6.4/conf and grant permissions
+sudo mv /tmp/mongos.conf /opt/mongodb-linux-x86_64-debian81-3.6.4/conf
+sudo chown mongodb:mongodb /opt/mongodb-linux-x86_64-debian81-3.6.4/conf/mongos.conf
+
+10) Copy init file to /etc/init.d and grant permissions
+sudo mv /tmp/mongos /etc/init.d
+sudo chown root:root /etc/init.d/mongos
+sudo chmod a+rx /etc/init.d/mongos
+
+11) Activate init script
+sudo update-rc.d mongos defaults
+
+12) Copy keyfile and grant permissions
+# Copy keyfile from config server (/opt/mongodb-linux-x86_64-debian81-3.6.4/keyfile) to /tmp folder in App Server
+sudo mv /tmp/keyfile /opt/mongodb-linux-x86_64-debian81-3.6.4
+sudo chown mongodb:mongodb /opt/mongodb-linux-x86_64-debian81-3.6.4/keyfile
+sudo chmod 600 /opt/mongodb-linux-x86_64-debian81-3.6.4/keyfile
+
+13) Start mongos
+sudo service mongos start
+
+14) Test connection
+mongo --port 27017 -u admin --authenticationDatabase admin -p
+use admin
+sh.status()
+quit()
+
+
+
+

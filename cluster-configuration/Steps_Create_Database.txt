@@ -1,0 +1,18 @@
+1) Create user, database and collections. Incluide indexes and enable sharding.
+mongo --port 27017 -u admin --authenticationDatabase admin -p
+use mydatabase
+db.createUser(
+  {
+    user: "my_user",
+    pwd: "my_pwd",
+    roles: [
+       { role: "readWrite", db: "mydatabase" }
+    ]
+  }
+)
+db.createCollection("mycollection")
+db.mydatabase.createIndex({field_to_shard: 1})
+use admin
+db.runCommand( { enableSharding: "mydatabase" } );
+db.runCommand( { shardCollection: "mydatabase.mycollection", key: { field_to_shard:1 } } );
+quit()
